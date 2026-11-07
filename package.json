@@ -1,0 +1,17 @@
+{
+  "name": "ppt-image2-editable-rebuild",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Rebuild a single reference image as an editable PowerPoint slide with native text/shapes plus local icon crops.",
+  "license": "Unlicense",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "scripts": {
+    "test": "node --test",
+    "env-check": "node scripts/build-env-check.mjs",
+    "rebuild": "node scripts/rebuild.mjs",
+    "scan": "node scripts/sensitivity-scan.mjs"
+  }
+}

@@ -1,0 +1,39 @@
+# ---- private inputs and outputs (never commit) ----
+# Real customer decks, reference images, masters, logos, business text.
+inputs/
+private/
+*.private.json
+
+# Generated build output
+out/
+builds/
+previews/
+qa-out/
+.probe/
+*.log
+
+# Office documents and rendered images are private project material.
+# Public fixtures live in tests/fixtures/ and are synthetic; keep them tracked
+# by explicit allow-list below.
+*.pptx
+*.docx
+*.xlsx
+*.png
+*.jpg
+*.jpeg
+
+# ---- dependencies / runtime state ----
+node_modules/
+.pnpm-store/
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# ---- allow public synthetic fixtures ----
+!tests/fixtures/**/*.png
+!tests/fixtures/**/*.json
+!tests/fixtures/**/*.md

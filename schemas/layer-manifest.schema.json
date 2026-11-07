@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/pvr/layer-manifest.schema.json",
+  "title": "PVR layer manifest",
+  "description": "Minimal, stable description of every visual layer produced by a rebuild. Public schema: it carries geometry and roles, never business content beyond an optional source-text span reference.",
+  "type": "object",
+  "required": ["schema", "task", "page", "target", "counts", "layers"],
+  "properties": {
+    "schema": { "const": "pvr.layer_manifest/v1" },
+    "task": { "type": "string" },
+    "page": {
+      "type": "object",
+      "required": ["title", "chapter"],
+      "properties": {
+        "title": { "type": "string" },
+        "chapter": { "type": "string" },
+        "display_page_no": { "type": ["integer", "null"] },
+        "source_slide_no": { "type": ["integer", "null"] }
+      }
+    },
+    "target": {
+      "type": "object",
+      "required": ["file", "slide_size_in", "render_px"],
+      "properties": {
+        "file": { "type": "string" },
+        "slide_size_in": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+        "render_px": { "type": "array", "items": { "type": "integer" }, "minItems": 2, "maxItems": 2 }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "required": ["total", "native", "crop", "text"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 1 },
+        "native": { "type": "integer", "minimum": 0 },
+        "crop": { "type": "integer", "minimum": 0 },
+        "text": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "layers": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/layer" }
+    }
+  },
+  "$defs": {
+    "layer": {
+      "type": "object",
+      "required": [
+        "element_id",
+        "semantic_role",
+        "target_bbox_in",
+        "z_index",
+        "native_or_crop",
+        "editability"
+      ],
+      "properties": {
+        "element_id": { "type": "string", "minLength": 1 },
+        "semantic_role": { "type": "string", "minLength": 1 },
+        "reference_bbox_px": {
+          "oneOf": [
+            { "type": "null" },
+            { "type": "array", "items": { "type": "number" }, "minItems": 4, "maxItems": 4 }
+          ]
+        },
+        "target_bbox_in": { "type": "array", "items": { "type": "number" }, "minItems": 4, "maxItems": 4 },
+        "z_index": { "type": "integer", "minimum": 0 },
+        "native_or_crop": { "enum": ["native", "crop"] },
+        "asset_path": { "type": ["string", "null"] },
+        "source_text_span": { "type": ["string", "null"] },
+        "editability": { "enum": ["editable_text", "editable_shape", "local_image"] },
+        "confidence": { "enum": ["high", "medium", "low"] },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}
