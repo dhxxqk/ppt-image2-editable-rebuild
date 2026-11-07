@@ -183,11 +183,27 @@ def main() -> int:
         checks["min_object_count"] = counts["all"] >= int(exp["min_objects"])
 
     ok = all(checks.values())
+
+    # Stable structural fingerprint: independent of OOXML creation GUIDs and
+    # timestamps, so two builds of the same input can be compared exactly.
+    canonical = json.dumps(
+        sorted(
+            [
+                [s["name"], s["type"], s["left_in"], s["top_in"], s["width_in"], s["height_in"], s["text"]]
+                for s in shapes
+            ],
+            key=lambda row: (row[0], row[1]),
+        ),
+        ensure_ascii=False,
+        sort_keys=True,
+    )
+
     result = {
         "file": str(path),
         "status": "PASS" if ok else "FAIL",
         "checks": checks,
         "counts": counts,
+        "structure_sha256": __import__("hashlib").sha256(canonical.encode("utf-8")).hexdigest(),
         "fonts": {"theme": theme, "runs": len(runs), "bad_runs": len(bad_fonts)},
         "out_of_bounds": out_of_bounds,
         "missing_text_shapes": missing_text,

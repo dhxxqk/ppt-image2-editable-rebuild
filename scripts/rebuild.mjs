@@ -252,7 +252,8 @@ async function main() {
   stage("layout_ms", t() - s);
 
   s = t();
-  const pptxPath = path.join(outDir, "PVR_P03_REBUILD_v1.pptx");
+  const pptxName = config.output?.pptx_name || "PVR_P03_REBUILD_v1.pptx";
+  const pptxPath = path.join(outDir, pptxName);
   try {
     await exportPptx(engine, built.pres, pptxPath);
   } catch (error) {
@@ -363,6 +364,20 @@ async function main() {
     qa: path.join(outDir, "qa", "qa_result.json"),
   };
   metrics.timings = timings;
+  // Gate 4 requires the phase timings as first-class fields, not only nested.
+  for (const key of [
+    "asset_prep_ms",
+    "layout_ms",
+    "pptx_export_ms",
+    "postprocess_ms",
+    "render_ms",
+    "content_qa_ms",
+    "technical_qa_ms",
+    "visual_review_ms",
+  ]) {
+    metrics[key] = metrics[key] ?? timings[key] ?? null;
+  }
+  metrics.output_structure_sha256 = qa.technical?.structure_sha256 || null;
   metrics.qa_status = qa.status;
   metrics.typography = typo;
   await fsp.writeFile(metricsPath, JSON.stringify(metrics, null, 2), "utf8");

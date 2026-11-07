@@ -30,9 +30,12 @@ export function renderSlide(spec) {
   if (!fs.existsSync(cli)) throw new RenderError(`render CLI not found: ${cli}`);
   if (!fs.existsSync(pptxPath)) throw new RenderError(`pptx not found: ${pptxPath}`);
   if (fs.existsSync(outDir)) {
-    // The CLI refuses to write into an existing directory; clear only our own output.
-    for (const entry of fs.readdirSync(outDir)) fs.rmSync(path.join(outDir, entry), { force: true });
+    // The CLI refuses an existing output directory. Remove our own render
+    // directory entirely (it is regenerable) so a warm rerun behaves like a
+    // cold one instead of failing with EEXIST.
+    fs.rmSync(outDir, { recursive: true, force: true });
   }
+  fs.mkdirSync(path.dirname(outDir), { recursive: true });
 
   const run = spawnSync(
     node || process.execPath,
