@@ -237,11 +237,13 @@ async function main() {
 
   // ---- stage 4: layout + export ----
   let engine;
+  s = t();
   try {
     engine = await loadEngine(config.engine?.entry);
   } catch (error) {
     return fail("engine_load", error);
   }
+  stage("engine_load_ms", t() - s);
   s = t();
   let built;
   try {
@@ -262,13 +264,15 @@ async function main() {
   stage("pptx_export_ms", t() - s);
   record("pptx_export", "PASS", pptxPath);
 
-  // engine preview is diagnostic evidence only
+  // engine preview is diagnostic evidence only; timed because it is not free
+  s = t();
   try {
     await exportEnginePng(built.pres, built.slide, path.join(outDir, "engine_preview.png"));
     await exportLayoutJson(built.slide, path.join(outDir, "engine_layout.json"));
   } catch (error) {
     record("engine_preview", "WARN", error.message);
   }
+  stage("engine_preview_ms", t() - s);
 
   // ---- stage 5: typography postprocess ----
   s = t();
