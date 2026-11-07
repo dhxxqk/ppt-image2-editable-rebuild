@@ -98,7 +98,8 @@ def main() -> int:
             box = (int(rx * width), int(ry * height), int((rx + rw) * width), int((ry + rh) * height))
             cb = base.crop(box)
             cn = rgb.crop(box)
-            ch, cw = cb.size
+            # PIL crop size is (width, height) - do not swap these.
+            cw, ch = cb.size
             canvas = Image.new("RGB", (cw, ch * 2 + 8), (255, 255, 255))
             canvas.paste(cb, (0, 0))
             canvas.paste(cn, (0, ch + 8))
