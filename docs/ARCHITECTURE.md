@@ -77,6 +77,34 @@ numbers, date pills) changes their text layout subtly enough to shift the
 render by a pixel. Matching the accepted baseline byte-for-byte depended on
 this detail.
 
+### Templates
+
+`config.template` selects the page structure; the CLI, manifest, QA gates and
+metrics are shared.
+
+| Template | Structure | Components |
+|---|---|---|
+| `milestone-timeline` (default) | title band + horizontal timeline + six cards | `title-band`, `timeline`, `card` |
+| `overview-two-column` | left information column + right route diagram | `overview/page`, `overview/diagram`, `rich-text` |
+
+**Rich text.** Source decks mark emphasis at run level. `rich-text.mjs` takes an
+ordered run list `[{text, bold}]` and sets each run explicitly, including the
+typeface, so the exported OOXML carries `latin`/`ea`/`cs` on every run instead
+of relying on inheritance. `config` validation rejects a run list whose
+concatenation differs from the declared source string, so emphasis can be
+preserved but text cannot drift.
+
+**Route diagrams.** `overview/diagram.mjs` renders blocks (`inputGrid`,
+`researchList`, `managementGrid`), native arrows, connector labels and a
+feedback loop from config data. Arrows are either preset arrow shapes at exact
+positions or connectors attached to two blocks. Decorative markers (the small
+diamonds before management items) are separate shapes, so no character is added
+to the text stream.
+
+`overview/text-map.mjs` is the single source of truth for every text element on
+an overview page; the builder and content QA both read it, so a renamed or
+dropped label becomes a QA failure rather than silent drift.
+
 ### Layers and the manifest
 
 `LayerRecorder` assigns z-order in insertion order and records the same fields

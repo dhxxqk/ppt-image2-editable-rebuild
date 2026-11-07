@@ -69,6 +69,12 @@ Keep it **outside this repository**. A minimal config:
 example: copy it and replace the content. Every geometry value is in inches and
 is read from `layout`; no coordinate is hardcoded in the builders.
 
+For a two-column overview page instead of a timeline, set
+`"template": "overview-two-column"` and provide an `overview` block (lead
+paragraph, research cards, route-diagram blocks). See
+`tests/fixtures/synthetic-overview.config.json`. Both templates share the same
+CLI, manifest, QA gates and metrics; only the page structure differs.
+
 Paths inside the config may be absolute or relative to the config file.
 
 ## 3. Check the environment once

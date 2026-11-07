@@ -1,0 +1,169 @@
+{
+  "schema": "pvr.rebuild.config/v1",
+  "template": "overview-two-column",
+  "id": "synthetic-overview",
+  "_comment": "Synthetic public fixture for the two-column overview template. All text is invented; no organization, project or person is referenced.",
+  "slide": {
+    "width_in": 11.111111,
+    "height_in": 6.25,
+    "master": "fixtures/synthetic-placeholder.pptx",
+    "layout": "Title Only",
+    "expected_existing_slides": 1
+  },
+  "engine": { "entry": "fixtures/engine-not-required-for-tests.mjs" },
+  "render": { "dpi": 144, "width_px": 1920, "height_px": 1080, "cli": "fixtures/render-cli-not-required-for-tests.js" },
+  "header": { "chapter": "示例章节", "pageTitle": "示例概览" },
+  "theme": {
+    "chapterColor": "#1D2B2E",
+    "titlePillFill": "linear(90deg, #0C6B54 0%, #06473B 100%)",
+    "titlePillBorder": "#8FCBB9",
+    "titlePillTextColor": "#FFFFFF",
+    "titlePillShadow": "0 6px 14px #00544A/18",
+    "leadFill": "#F2FAF7",
+    "leadBorder": "#BBDCD2",
+    "cardFill": "#FDFEFE",
+    "cardBorder": "#CFE6DE",
+    "cardRadius": 12,
+    "cardShadow": "0 4px 12px #00544A/10",
+    "iconBandFill": "linear(180deg, #0F7A60 0%, #05503F 100%)",
+    "iconGlyphColor": "#FFFFFF",
+    "bodyTextColor": "#1D2B2E",
+    "panelFill": "#EFF8F6",
+    "panelBorder": "#CBE5DC",
+    "panelShadow": "0 6px 18px #00544A/10",
+    "darkBlue": "#1A3F6F",
+    "researchBlue": "#2B5895",
+    "blockFill": "#FFFFFF",
+    "blockBorder": "#2E75B6",
+    "pillFill": "#DBE6F5",
+    "pillBorder": "#A9C4E6",
+    "pillTextColor": "#17335C",
+    "accentBlue": "#2E75B6",
+    "labelColor": "#1A3F6F",
+    "captionColor": "#44575B"
+  },
+  "typography": {
+    "fontFamily": "Microsoft YaHei",
+    "chapterPt": 21,
+    "pageTitlePt": 17,
+    "cardTitlePt": 12.2,
+    "bodyPt": 12.2,
+    "bodyLine": 1.28,
+    "datePt": 10,
+    "nodeNoPt": 10,
+    "hangingPunct": false
+  },
+  "overview": {
+    "chapter": { "box": { "left": 2.37, "top": 0.1, "width": 8.48, "height": 0.5 } },
+    "titlePill": { "box": { "left": 0.55, "top": 0.95, "width": 1.9, "height": 0.43 } },
+    "lead": {
+      "box": { "left": 0.47, "top": 1.52, "width": 5.42, "height": 1.44 },
+      "textBox": { "left": 0.62, "top": 1.58, "width": 5.24, "height": 1.32 },
+      "fontPt": 13.2,
+      "lineSpacing": 1.3,
+      "text": "这是用于测试的合成说明文字，其中示例强调片段需要加粗，其余内容保持常规字重。",
+      "runs": [
+        { "text": "这是用于测试的合成说明文字，其中", "bold": false },
+        { "text": "示例强调片段", "bold": true },
+        { "text": "需要加粗，其余内容保持常规字重。", "bold": false }
+      ]
+    },
+    "iconBandWidth": 0.55,
+    "cardFontPt": 12.2,
+    "cardLineSpacing": 1.28,
+    "cards": [
+      {
+        "id": "1",
+        "icon": "chart",
+        "box": { "left": 0.47, "top": 3.08, "width": 5.42, "height": 0.95 },
+        "textBox": { "left": 1.12, "top": 3.12, "width": 4.67, "height": 0.87 },
+        "text": "合成研究一。仅用于验证组件结构与文本分解。",
+        "runs": [
+          { "text": "合成研究一", "bold": true },
+          { "text": "。仅用于验证组件结构与文本分解。", "bold": false }
+        ]
+      },
+      {
+        "id": "2",
+        "icon": "layers",
+        "box": { "left": 0.47, "top": 4.15, "width": 5.42, "height": 0.95 },
+        "textBox": { "left": 1.12, "top": 4.19, "width": 4.67, "height": 0.87 },
+        "text": "合成研究二。包含一个加粗术语与常规说明。",
+        "runs": [
+          { "text": "合成研究二", "bold": true },
+          { "text": "。包含一个", "bold": false },
+          { "text": "加粗术语", "bold": true },
+          { "text": "与常规说明。", "bold": false }
+        ]
+      },
+      {
+        "id": "3",
+        "icon": "network",
+        "box": { "left": 0.47, "top": 5.22, "width": 5.42, "height": 0.93 },
+        "textBox": { "left": 1.12, "top": 5.26, "width": 4.67, "height": 0.85 },
+        "text": "合成研究三。用于验证多段落与图标区域。",
+        "runs": [{ "text": "合成研究三。用于验证多段落与图标区域。", "bold": true }]
+      }
+    ],
+    "diagram": {
+      "panel": { "box": { "left": 6.06, "top": 1.14, "width": 4.7, "height": 4.66 }, "radius": 14 },
+      "caption": { "text": "示例路线图", "box": { "left": 6.3, "top": 5.52, "width": 4.2, "height": 0.22 }, "fontPt": 10.5 },
+      "blocks": [
+        {
+          "id": "top",
+          "kind": "inputGrid",
+          "box": { "left": 6.46, "top": 1.28, "width": 3.52, "height": 1.02 },
+          "title": "示例输入",
+          "titlePt": 11,
+          "headerH": 0.32,
+          "columns": 3,
+          "padX": 0.08,
+          "padTop": 0.06,
+          "gapX": 0.08,
+          "pillH": 0.24,
+          "gapY": 0.05,
+          "itemPt": 9,
+          "items": ["项目一", "项目二", "项目三", "项目四", "项目五", "项目六"]
+        },
+        {
+          "id": "bottom",
+          "kind": "managementGrid",
+          "box": { "left": 6.24, "top": 4.18, "width": 3.74, "height": 1.3 },
+          "title": "示例管理",
+          "titlePt": 10,
+          "headerH": 0.3,
+          "padX": 0.08,
+          "padTop": 0.06,
+          "gapX": 0.1,
+          "colHeaderH": 0.24,
+          "colHeaderPt": 9,
+          "itemGap": 0.04,
+          "itemH": 0.19,
+          "itemPt": 8.5,
+          "columns": [
+            { "header": "列一", "items": ["条目一", "条目二"] },
+            { "header": "列二", "items": ["条目三", "条目四", "条目五"] },
+            { "header": "列三", "items": ["条目六", "条目七"] }
+          ]
+        }
+      ],
+      "arrows": [
+        {
+          "id": "top-bottom",
+          "from": "top",
+          "to": "bottom",
+          "direction": "down",
+          "box": { "left": 8.1, "top": 2.3, "width": 0.14, "height": 0.26 }
+        }
+      ],
+      "labels": [{ "name": "flow", "text": "流转", "box": { "left": 8.3, "top": 2.35, "width": 0.4, "height": 0.2 }, "fontPt": 8 }]
+    }
+  },
+  "qa": {
+    "expected_slide_count": 1,
+    "forbidden_texts": ["真实客户"],
+    "status_words": [],
+    "max_image_area_pct": 1.0,
+    "min_objects": 40
+  }
+}

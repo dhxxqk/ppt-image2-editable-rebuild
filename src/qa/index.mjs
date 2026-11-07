@@ -13,6 +13,7 @@ import fsp from "node:fs/promises";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { overviewTextMap } from "../components/overview/text-map.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
@@ -22,22 +23,56 @@ function runPython(pythonPath, args) {
 }
 
 function parseJson(text, fallback) {
+  const trimmed = (text || "").trim();
+  if (!trimmed) return fallback;
   try {
-    return JSON.parse(text.split("\n").slice(-200).join("\n"));
+    return JSON.parse(trimmed);
   } catch {
+    // Fall back to the last JSON object the tool printed.
+    const lines = trimmed.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      if (lines[i].trim() !== "{") continue;
+      try {
+        return JSON.parse(lines.slice(i).join("\n"));
+      } catch {
+        /* keep scanning */
+      }
+    }
     return fallback;
   }
 }
 
+/** Read the tool's --out file when present; the file is never truncated. */
+function readResult(outFile, stdout, fallback) {
+  try {
+    if (fs.existsSync(outFile)) return JSON.parse(fs.readFileSync(outFile, "utf8"));
+  } catch {
+    /* fall through to stdout */
+  }
+  return parseJson(stdout, fallback);
+}
+
 /** Build the content-QA expectations file from the private config. */
 export function buildContentExpectations(config) {
-  return {
+  const base = {
     slide_index: 0,
     expected_slide_count: config.qa?.expected_slide_count ?? 1,
     header: { chapter: config.header.chapter, page_title: config.header.pageTitle },
-    cards: config.cards.map((c) => ({ id: c.id, title: c.title, date: c.date, body: c.body })),
     forbidden_texts: config.qa?.forbidden_texts ?? [],
     status_words: config.qa?.status_words ?? [],
+  };
+
+  if ((config.template || "milestone-timeline") === "overview-two-column") {
+    const map = overviewTextMap(config);
+    return {
+      ...base,
+      text_checks: map.map((m) => ({ shape: m.shape, role: m.role, text: m.text, bold_spans: m.bold_spans })),
+    };
+  }
+
+  return {
+    ...base,
+    cards: config.cards.map((c) => ({ id: c.id, title: c.title, date: c.date, body: c.body })),
     authorized_overrides: config.cards
       .filter((c) => c.date_override)
       .map((c) => ({ shape: `date-${c.id}`, expected: c.date_override.value, reason: c.date_override.reason })),
@@ -45,8 +80,13 @@ export function buildContentExpectations(config) {
 }
 
 export function buildTechnicalExpectations(config) {
-  const required = ["chapter", "page-title"];
-  for (const c of config.cards) required.push(`card-${c.id}-body`, `card-${c.id}-header`, `date-${c.id}`, `node-${c.id}`);
+  let required;
+  if ((config.template || "milestone-timeline") === "overview-two-column") {
+    required = overviewTextMap(config).map((m) => m.shape);
+  } else {
+    required = ["chapter", "page-title"];
+    for (const c of config.cards) required.push(`card-${c.id}-body`, `card-${c.id}-header`, `date-${c.id}`, `node-${c.id}`);
+  }
   return {
     slide_index: 0,
     expected_slide_count: config.qa?.expected_slide_count ?? 1,
@@ -84,7 +124,7 @@ export async function runQa({ config, resolvePath, pythonPath, pptxPath, pngPath
     "--out",
     contentOut,
   ]);
-  const content = parseJson(contentRun.stdout, { status: "FAIL", error: contentRun.stderr });
+  const content = readResult(contentOut, contentRun.stdout, { status: "FAIL", error: contentRun.stderr });
   const contentMs = Date.now() - contentStart;
 
   const techStart = Date.now();
@@ -97,7 +137,7 @@ export async function runQa({ config, resolvePath, pythonPath, pptxPath, pngPath
     "--out",
     technicalOut,
   ]);
-  const technical = parseJson(techRun.stdout, { status: "FAIL", error: techRun.stderr });
+  const technical = readResult(technicalOut, techRun.stdout, { status: "FAIL", error: techRun.stderr });
   const technicalMs = Date.now() - techStart;
 
   let visual = { status: "SKIPPED", reason: "no render was produced" };
@@ -129,7 +169,7 @@ export async function runQa({ config, resolvePath, pythonPath, pptxPath, pngPath
       "--out-heatmap",
       path.join(outDir, "P03_001v2_vs_002_heatmap.png"),
     ]);
-    visual = parseJson(visualRun.stdout, { status: "FAIL", error: visualRun.stderr });
+    visual = readResult(visualOut, visualRun.stdout, { status: "FAIL", error: visualRun.stderr });
     visualMs = Date.now() - visualStart;
     visual.human_review_required = true;
     visual.human_review_note = "Pixel metrics are diagnostics; a person must view the PNG before claiming visual PASS.";

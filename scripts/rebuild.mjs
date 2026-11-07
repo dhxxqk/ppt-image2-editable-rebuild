@@ -66,7 +66,7 @@ function nowIso() {
 
 function cacheKey(config, resolvePath) {
   const parts = [];
-  for (const card of config.cards) {
+  for (const card of config.cards || []) {
     parts.push(card.id, card.icon?.path || "", card.icon?.sha256 || "");
     if (card.icon?.path) {
       const p = resolvePath(card.icon.path);
@@ -222,18 +222,24 @@ async function main() {
   stage("asset_prep_ms", t() - s);
   metrics.input_hashes.icons = assets.report.hashes;
 
-  // ---- stage 3: typography preflight ----
-  const geom = computeCards(config.slide.width_in, config.layout, config.cards.length);
-  const preflight = preflightCards({
-    cards: config.cards,
-    layout: { ...config.layout, cardW_in: geom.cardW },
-    typography: config.typography,
-  });
-  record("preflight", preflight.status, `overflow=${preflight.overflow.join(",") || "none"} tight=${preflight.tight.join(",") || "none"}`);
-  await fsp.writeFile(path.join(outDir, "preflight.json"), JSON.stringify(preflight, null, 2), "utf8");
-  if (preflight.status === "FAIL") {
-    return fail("preflight", new Error(`text preflight overflow: ${preflight.overflow.join(", ")}`));
+  // ---- stage 3: typography preflight (milestone cards only) ----
+  const isOverview = (config.template || "milestone-timeline") === "overview-two-column";
+  let preflight = { status: "SKIPPED", reason: "overview template lays text out per panel" };
+  if (!isOverview) {
+    const geom = computeCards(config.slide.width_in, config.layout, config.cards.length);
+    preflight = preflightCards({
+      cards: config.cards,
+      layout: { ...config.layout, cardW_in: geom.cardW },
+      typography: config.typography,
+    });
+    if (preflight.status === "FAIL") {
+      record("preflight", preflight.status, `overflow=${preflight.overflow.join(",") || "none"} tight=${preflight.tight.join(",") || "none"}`);
+      await fsp.writeFile(path.join(outDir, "preflight.json"), JSON.stringify(preflight, null, 2), "utf8");
+      return fail("preflight", new Error(`text preflight overflow: ${preflight.overflow.join(", ")}`));
+    }
   }
+  record("preflight", preflight.status, isOverview ? "overview template" : `overflow=${preflight.overflow.join(",") || "none"} tight=${preflight.tight.join(",") || "none"}`);
+  await fsp.writeFile(path.join(outDir, "preflight.json"), JSON.stringify(preflight, null, 2), "utf8");
 
   // ---- stage 4: layout + export ----
   let engine;
@@ -354,7 +360,8 @@ async function main() {
     counts: built.layers.counts(),
     layers: built.layers.layers,
   };
-  await fsp.writeFile(path.join(outDir, "P03_layer_manifest.json"), JSON.stringify(manifest, null, 2), "utf8");
+  const manifestName = config.output?.manifest_name || `${config.id}_layer_manifest.json`;
+  await fsp.writeFile(path.join(outDir, manifestName), JSON.stringify(manifest, null, 2), "utf8");
 
   const deliverable = !skipRender && !skipQa && qa.status === "PASS" && typo.status !== "FAIL";
   metrics.total_elapsed_ms = Date.now() - started;
@@ -364,7 +371,7 @@ async function main() {
   metrics.outputs = {
     pptx: pptxPath,
     png: pngPath,
-    manifest: path.join(outDir, "P03_layer_manifest.json"),
+    manifest: path.join(outDir, manifestName),
     qa: path.join(outDir, "qa", "qa_result.json"),
   };
   metrics.timings = timings;

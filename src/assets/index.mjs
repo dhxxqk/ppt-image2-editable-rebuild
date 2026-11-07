@@ -76,7 +76,7 @@ export async function prepareAssets({ config, resolvePath, pythonPath, outDir, m
   } else {
     // Stage the prepared icons so hashing and residue checks see exactly the
     // files the deck will embed.
-    for (const card of config.cards) {
+    for (const card of config.cards || []) {
       if (!card.icon?.path) continue;
       const src = resolvePath(card.icon.path);
       if (!fs.existsSync(src)) throw new Error(`icon not found for card ${card.id}: ${src}`);
@@ -90,11 +90,11 @@ export async function prepareAssets({ config, resolvePath, pythonPath, outDir, m
         }
       }
     }
-    steps.push({ step: "stage", status: "PASS", detail: `${config.cards.filter((c) => c.icon?.path).length} icons` });
+    steps.push({ step: "stage", status: "PASS", detail: `${(config.cards || []).filter((c) => c.icon?.path).length} icons` });
   }
 
   // Normalize staged paths for derive mode too.
-  for (const card of config.cards) {
+  for (const card of config.cards || []) {
     if (card.__stagedIcon) continue;
     if (card.icon?.derive) {
       const name = card.icon.derive.name || `${card.id}.png`;
@@ -119,7 +119,7 @@ export async function prepareAssets({ config, resolvePath, pythonPath, outDir, m
 
   const icons = new Map();
   const hashes = {};
-  for (const card of config.cards) {
+  for (const card of config.cards || []) {
     if (!card.__stagedIcon) continue;
     if (!fs.existsSync(card.__stagedIcon)) throw new Error(`staged icon missing for card ${card.id}: ${card.__stagedIcon}`);
     icons.set(card.id, await fsp.readFile(card.__stagedIcon));

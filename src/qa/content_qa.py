@@ -26,6 +26,56 @@ def shape_texts(slide) -> dict[str, str]:
     return texts
 
 
+def shape_bold_spans(slide) -> dict[str, list]:
+    """Bold substrings per shape, from run-level formatting.
+
+    PowerPoint may leave bold unset on a run that inherits emphasis; here every
+    generated run carries an explicit boolean, so `None` is treated as False.
+    """
+    spans = {}
+    for sh in slide.shapes:
+        if not (getattr(sh, "has_text_frame", False) and sh.has_text_frame):
+            continue
+        runs = []
+        for para in sh.text_frame.paragraphs:
+            for r in para.runs:
+                runs.append((r.text, bool(r.font.bold)))
+        spans[sh.name] = [t for t, b in runs if b and t]
+    return spans
+
+
+def check_text_checks(slide, checks):
+    """Exact text (and optional bold-span) comparison for a named shape list."""
+    texts = shape_texts(slide)
+    spans = shape_bold_spans(slide)
+    rows = []
+    failures = 0
+    for chk in checks:
+        name = chk["shape"]
+        expected = chk["text"]
+        actual = texts.get(name)
+        text_ok = actual == expected
+        bold_ok = True
+        if chk.get("bold_spans") is not None:
+            bold_ok = spans.get(name, []) == chk["bold_spans"]
+        ok = text_ok and bold_ok
+        if not ok:
+            failures += 1
+        rows.append(
+            {
+                "shape": name,
+                "role": chk.get("role"),
+                "text_exact": text_ok,
+                "bold_exact": bold_ok,
+                "expected_chars": len(expected),
+                "actual_chars": len(actual) if actual is not None else None,
+                "status": "PASS" if ok else "FAIL",
+                "actual": None if text_ok else actual,
+            }
+        )
+    return rows, failures
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--pptx", required=True)
@@ -44,6 +94,34 @@ def main() -> int:
     slide = prs.slides[slide_index]
     texts = shape_texts(slide)
     all_text = "\n".join(texts.values())
+
+    # Named-shape mode (overview pages): every visible string is checked by name.
+    if exp.get("text_checks"):
+        rows, failures = check_text_checks(slide, exp["text_checks"])
+        checks = {
+            "slide_count_expected": len(prs.slides) == int(exp.get("expected_slide_count", 1)),
+            "all_named_texts_present": all(r["actual_chars"] is not None for r in rows),
+            "forbidden_texts_absent": all(t not in all_text for t in exp.get("forbidden_texts", [])),
+            "status_words_absent": all(w not in all_text for w in exp.get("status_words", [])),
+            "no_manual_line_breaks": all("\n" not in (texts.get(r["shape"]) or "") for r in rows),
+        }
+        ok = all(checks.values()) and failures == 0
+        result = {
+            "file": args.pptx,
+            "mode": "named_text_checks",
+            "status": "PASS" if ok else "FAIL",
+            "checks": checks,
+            "rows": rows,
+            "summary": {
+                "checked_shapes": len(rows),
+                "failed_shapes": failures,
+                "unauthorized_text_differences": failures,
+            },
+        }
+        if args.out:
+            Path(args.out).write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0 if ok else 1
 
     authorized = {o["shape"]: o for o in exp.get("authorized_overrides", [])}
     rows = []
